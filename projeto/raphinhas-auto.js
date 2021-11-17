@@ -15,10 +15,16 @@
             handleSubmit: function handleSubmit(event) {
                 event.preventDefault();
                 if(application().isURLOk() !== true) {
-                    alert('Insira uma URL válida!')
+                    alert('Insira uma URL válida!');
                     return;
                 }
+                if(application().isEveryFieldFilled() !== true) {
+                    alert('Preencha todos os campos corretamente!');
+                    return;
+                }
+                console.log(application().isEveryFieldFilled());   
                 application().fillTable();
+                application().addRemoveButton();
             },
             fillTable: function fillTable() {
                 var fragment = document.createDocumentFragment();
@@ -53,6 +59,34 @@
                 fragment.appendChild(newTr);
                 $tbody.get(0).appendChild(fragment);
             },
+            addRemoveButton: function addRemoveButton() {
+                var $tbody = new DOM('[data-js="tbody"]');
+                var parentNode = $tbody.get(0).parentNode;
+                var lastChild = parentNode.lastElementChild;
+                $tbody.get(0).insertAdjacentHTML('afterend',
+                '<tbody data-js="tbody-button">' +
+                '<tr><td colspan="5"><button data-js="remove-button">Remover</button></td></tr>' + 
+                '</tbody>');
+                if(parentNode.childElementCount > 3)
+                    parentNode.removeChild(lastChild);
+
+                this.addRemoveButtonEvent();
+            },
+            addRemoveButtonEvent: function addRemoveButtonEvent() {
+                var removeButton = new DOM('[data-js="remove-button"]');
+                removeButton.on('click', this.handleClickRemoveButton);
+            },
+            handleClickRemoveButton: function handleClickRemoveButton(event) {
+                var $tbody = new DOM('[data-js="tbody"]');
+                var $tbodyButton = new DOM('[data-js="tbody-button"]')
+                var lastChild = $tbody.get(0).lastElementChild;
+                var parentNode = $tbodyButton.get(0).parentNode;
+                var parentNodeLastChild = parentNode.lastElementChild;
+                $tbody.get(0).removeChild(lastChild);
+                console.log(parentNode.childElementCount);
+                if(parentNode.childElementCount === 3 && $tbody.get(0).childElementCount < 1)
+                    parentNode.removeChild(parentNodeLastChild)
+            },
             formatYear: function formatYear() {
                 this.value = application().removeNotNumber(this.value);
             },
@@ -66,6 +100,19 @@
                 return $image.get(0).value.endsWith('.jpg')
                 || $image.get(0).value.endsWith('.jpeg')
                 || $image.get(0).value.endsWith('.png');
+            },
+            isEveryFieldFilled: function isEveryFieldFilled() {
+                var $image = new DOM('[data-js="imagem"]');
+                var $modelo = new DOM('[data-js="marca-modelo"]');
+                var $ano = new DOM('[data-js="ano"]');
+                var $placa = new DOM('[data-js="placa"]');
+                var $cor = new DOM('[data-js="cor"]');
+
+                return $image.get(0).value !== '' &&
+                $modelo.get(0).value !== '' &&
+                $ano.get(0).value !== '' &&
+                $placa.get(0).value !== '' &&
+                $cor.get(0).value !== '';
             },
             removeNotNumber: function removeNotNumber(str) {
                 return str.replace(/\D+/g, '');
