@@ -66,6 +66,16 @@
                     application().addRemoveButton();
                 }
             },
+            removeCarFromServer: function removeCarFromServer() {
+                var ajax = new XMLHttpRequest();
+                ajax.open('DELETE', 'http://localhost:3000/car');
+                ajax.send();
+
+                ajax.addEventListener('readystatechange', function(e) {
+                    if(ajax.readyState === 4 && ajax.status === 200)
+                        console.log(JSON.parse(ajax.responseText).message);
+                });
+            },
             fillTable: function fillTable() {
                 var fragment = document.createDocumentFragment();
                 var $tbody = new DOM('[data-js="tbody"]');
