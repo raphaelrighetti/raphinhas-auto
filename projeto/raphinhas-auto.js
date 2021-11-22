@@ -2,7 +2,8 @@
     var application = function app() {
         return {
             init: function init() {
-                this.initEvents()
+                this.initEvents();
+                this.getCarsFromServer();
             },
             initEvents: function initEvents() {
                 var $form = new DOM('[data-js="form-cadastro"]');
@@ -21,10 +22,49 @@
                 if(application().isEveryFieldFilled() !== true) {
                     alert('Preencha todos os campos corretamente!');
                     return;
-                }
-                console.log(application().isEveryFieldFilled());   
+                }   
                 application().fillTable();
+                application().addCarToServer();
                 application().addRemoveButton();
+            },
+            getCarsFromServer: function getCarsFromServer() {
+                var ajax = new XMLHttpRequest();
+                ajax.open('GET', 'http://localhost:3000/car');
+                ajax.send();
+                ajax.addEventListener('readystatechange', application().addCarsFromServer, false);
+            },
+            addCarsFromServer: function addCarsFromServer() {
+                if(this.readyState === 4 && this.status === 200) {
+                    var cars = JSON.parse(this.responseText);
+                    var $tbody = new DOM('[data-js="tbody"]');
+                    if(cars[0].image === undefined)
+                        return;
+                    cars.forEach(function(item) {
+                        var fragment = document.createDocumentFragment();
+                        var newTr = document.createElement('tr');
+                        var imageTd = document.createElement('td');
+                        var brandModelTd = document.createElement('td');
+                        var yearTd = document.createElement('td');
+                        var plateTd = document.createElement('td');
+                        var colorTd = document.createElement('td');
+                        var image = document.createElement('img');
+                        image.src = item.image;
+                        
+                        imageTd.appendChild(image);
+                        brandModelTd.textContent = item.brandModel;
+                        yearTd.textContent = item.year;
+                        plateTd.textContent = item.plate;
+                        colorTd.textContent = item.color;
+                        arrTd = [imageTd, brandModelTd, yearTd, plateTd, colorTd]
+                        arrTd.forEach(function(item) {
+                            newTr.appendChild(item);
+                        })
+
+                        fragment.appendChild(newTr);
+                        $tbody.get(0).appendChild(fragment);
+                    });
+                    application().addRemoveButton();
+                }
             },
             fillTable: function fillTable() {
                 var fragment = document.createDocumentFragment();
@@ -59,6 +99,26 @@
                 fragment.appendChild(newTr);
                 $tbody.get(0).appendChild(fragment);
             },
+            addCarToServer: function addCarToServer() {
+                var $image = new DOM('[data-js="imagem"]');
+                var $modelo = new DOM('[data-js="marca-modelo"]');
+                var $ano = new DOM('[data-js="ano"]');
+                var $placa = new DOM('[data-js="placa"]');
+                var $cor = new DOM('[data-js="cor"]');
+                var ajaxPost = new XMLHttpRequest();
+                ajaxPost.open('POST', 'http://localhost:3000/car');
+                ajaxPost.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                ajaxPost.send('image=' + $image.get(0).value +
+                '&brandModel=' + $modelo.get(0).value +
+                '&year=' + $ano.get(0).value +
+                '&plate=' + $placa.get(0).value +
+                '&color=' + $cor.get(0).value);
+
+                ajaxPost.addEventListener('readystatechange', function() {
+                    if(this.readyState === 4 && this.status === 200)
+                        console.log(JSON.parse(this.responseText).message);
+                }, false)
+            },
             addRemoveButton: function addRemoveButton() {
                 var $tbody = new DOM('[data-js="tbody"]');
                 var parentNode = $tbody.get(0).parentNode;
@@ -78,12 +138,12 @@
             },
             handleClickRemoveButton: function handleClickRemoveButton(event) {
                 var $tbody = new DOM('[data-js="tbody"]');
-                var $tbodyButton = new DOM('[data-js="tbody-button"]')
+                var $tbodyButton = new DOM('[data-js="tbody-button"]');
                 var lastChild = $tbody.get(0).lastElementChild;
                 var parentNode = $tbodyButton.get(0).parentNode;
                 var parentNodeLastChild = parentNode.lastElementChild;
                 $tbody.get(0).removeChild(lastChild);
-                console.log(parentNode.childElementCount);
+                application().removeCarFromServer();
                 if(parentNode.childElementCount === 3 && $tbody.get(0).childElementCount < 1)
                     parentNode.removeChild(parentNodeLastChild)
             },
