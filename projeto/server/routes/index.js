@@ -19,4 +19,9 @@ router.post('/', function(req, res) {
   res.json({ message: 'success' });
 });
 
+router.delete('/', function(req, res) {
+  data.pop();
+  res.json({message: 'removed'});
+});
+
 module.exports = router;
